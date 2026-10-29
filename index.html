@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¿Quién es ese Pokémon?</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="juego">
+    <h1>¿Quién es ese Pokémon?</h1>
+
+    <section class="controles">
+      <label>
+        Generación
+        <select id="generacion">
+          <option value="1-1025">Todas</option>
+          <option value="1-151" selected>1 (Kanto)</option>
+          <option value="152-251">2 (Johto)</option>
+          <option value="252-386">3 (Hoenn)</option>
+          <option value="387-493">4 (Sinnoh)</option>
+          <option value="494-649">5 (Teselia)</option>
+          <option value="650-721">6 (Kalos)</option>
+          <option value="722-809">7 (Alola)</option>
+          <option value="810-905">8 (Galar)</option>
+          <option value="906-1025">9 (Paldea)</option>
+        </select>
+      </label>
+      <label>
+        Modo
+        <select id="modo">
+          <option value="opciones" selected>Opciones</option>
+          <option value="escribir">Escribir</option>
+        </select>
+      </label>
+    </section>
+
+    <section class="marcador">
+      <span>Puntos: <strong id="puntos">0</strong></span>
+      <span>Racha: <strong id="racha">0</strong></span>
+      <span>Mejor racha: <strong id="mejor">0</strong></span>
+      <span id="vidas" class="vidas" aria-label="Vidas"></span>
+    </section>
+
+    <section class="temporizador">
+      <div id="barra-tiempo" class="barra-tiempo"></div>
+      <span id="tiempo" class="tiempo">15</span>
+    </section>
+
+    <section class="escenario">
+      <div class="rayos"></div>
+      <img id="sprite" alt="Pokémon misterioso" draggable="false">
+      <div id="cargando" class="cargando">Cargando...</div>
+    </section>
+
+    <p id="mensaje" class="mensaje"></p>
+
+    <section id="zona-opciones" class="opciones"></section>
+
+    <form id="zona-escribir" class="escribir oculto" autocomplete="off">
+      <input id="respuesta" type="text" placeholder="Escribe el nombre..." spellcheck="false">
+      <button type="submit">Adivinar</button>
+      <button type="button" id="pista">Pista</button>
+    </form>
+
+    <button id="siguiente" class="siguiente oculto">Siguiente ▶</button>
+    <button id="rendirse" class="rendirse">Me rindo</button>
+  </main>
+
+  <div id="fin-juego" class="fin-juego oculto">
+    <div class="panel-fin">
+      <h2>¡Fin del juego!</h2>
+      <p>Puntos: <strong id="puntos-final">0</strong></p>
+      <p>Mejor racha: <strong id="mejor-final">0</strong></p>
+      <button id="reiniciar">Jugar de nuevo</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
