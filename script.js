@@ -32,6 +32,49 @@ $("mejor").textContent = mejor;
 
 const cacheNombres = new Map();
 
+// Sonidos generados con Web Audio, sin archivos
+let audio = null;
+let silenciado = leerLocal("silenciado") === "1";
+const btnSonido = $("sonido");
+
+function pintarSonido() {
+  btnSonido.textContent = silenciado ? "🔇" : "🔊";
+  btnSonido.setAttribute("aria-label", silenciado ? "Activar sonido" : "Silenciar");
+}
+
+function nota(frecuencia, inicio, duracion, tipo = "square", volumen = 0.15) {
+  const osc = audio.createOscillator();
+  const gan = audio.createGain();
+  const t = audio.currentTime + inicio;
+  osc.type = tipo;
+  osc.frequency.setValueAtTime(frecuencia, t);
+  gan.gain.setValueAtTime(volumen, t);
+  gan.gain.exponentialRampToValueAtTime(0.001, t + duracion);
+  osc.connect(gan).connect(audio.destination);
+  osc.start(t);
+  osc.stop(t + duracion);
+  return osc;
+}
+
+function sonar(tipo) {
+  if (silenciado) return;
+  try {
+    audio ??= new (window.AudioContext || window.webkitAudioContext)();
+    if (audio.state === "suspended") audio.resume();
+  } catch {
+    return;
+  }
+  if (tipo === "acierto") {
+    // Arpegio ascendente
+    [523, 659, 784, 1047].forEach((f, i) => nota(f, i * 0.09, 0.18));
+  } else {
+    // Dos notas graves que bajan
+    const osc = nota(220, 0, 0.25, "sawtooth", 0.12);
+    osc.frequency.exponentialRampToValueAtTime(150, audio.currentTime + 0.25);
+    nota(130, 0.25, 0.4, "sawtooth", 0.12);
+  }
+}
+
 function leerLocal(clave) {
   try { return localStorage.getItem(clave); } catch { return null; }
 }
@@ -280,12 +323,14 @@ function terminarRonda(acierto, motivo) {
     }
     mensaje.textContent = `¡Es ${actual.nombre}!`;
     mensaje.className = "mensaje bien";
+    sonar("acierto");
   } else {
     racha = 0;
     vidas--;
     pintarVidas();
     mensaje.textContent = `${motivo ? motivo + " " : ""}Era ${actual.nombre}...`;
     mensaje.className = "mensaje mal";
+    sonar("fallo");
   }
 
   $("puntos").textContent = puntos;
@@ -335,6 +380,12 @@ btnRendirse.addEventListener("click", () => {
   terminarRonda(false);
 });
 $("reiniciar").addEventListener("click", reiniciarJuego);
+btnSonido.addEventListener("click", () => {
+  silenciado = !silenciado;
+  guardarLocal("silenciado", silenciado ? "1" : "0");
+  pintarSonido();
+});
+pintarSonido();
 selModo.addEventListener("change", cambiarModo);
 selGeneracion.addEventListener("change", reiniciarJuego);
 
