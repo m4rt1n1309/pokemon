@@ -54,6 +54,8 @@
 
     <section id="nombres" class="nombres solo-multi"></section>
 
+    <button id="btn-online" class="btn-online" type="button">🌐 Jugar online</button>
+
     <section class="marcador">
       <span class="solo-uno">Puntos: <strong id="puntos">0</strong></span>
       <span class="solo-uno">Racha: <strong id="racha">0</strong></span>
@@ -89,7 +91,47 @@
 
     <button id="siguiente" class="siguiente oculto">Siguiente ▶</button>
     <button id="rendirse" class="rendirse">Me rindo</button>
+    <button id="salir-partida" class="rendirse solo-online" type="button">Salir de la sala</button>
   </main>
+
+  <div id="online" class="fin-juego oculto">
+    <div class="panel-fin panel-online">
+      <div id="online-entrar">
+        <h2>Jugar online</h2>
+        <input id="online-nombre" type="text" maxlength="12" placeholder="Tu nombre" autocomplete="off">
+        <button id="crear-sala" type="button">Crear sala</button>
+        <p class="separador">o únete a una sala</p>
+        <div class="fila">
+          <input id="online-codigo" type="text" maxlength="8" placeholder="Código" autocomplete="off">
+          <button id="unirse" type="button">Unirse</button>
+        </div>
+        <p id="online-error" class="online-error"></p>
+        <button id="online-cerrar" class="secundario" type="button">Cancelar</button>
+      </div>
+
+      <div id="online-sala" class="oculto">
+        <h2>Sala <span id="codigo-sala" class="codigo-sala"></span></h2>
+        <button id="copiar-enlace" class="secundario" type="button">📋 Copiar enlace para invitar</button>
+        <ul id="lista-sala" class="ranking"></ul>
+        <div id="config-host" class="config-host">
+          <label>Generación <select id="sala-generacion"></select></label>
+          <label>Modo <select id="sala-modo"></select></label>
+          <label>Rondas
+            <select id="sala-rondas">
+              <option value="5">5</option>
+              <option value="10" selected>10</option>
+              <option value="15">15</option>
+              <option value="20">20</option>
+            </select>
+          </label>
+        </div>
+        <p id="config-texto" class="config-texto"></p>
+        <button id="empezar" type="button">Empezar partida</button>
+        <p id="esperando" class="esperando">Esperando a que el anfitrión empiece...</p>
+        <button id="salir-sala" class="secundario" type="button">Salir de la sala</button>
+      </div>
+    </div>
+  </div>
 
   <div id="fin-juego" class="fin-juego oculto">
     <div class="panel-fin">
@@ -100,9 +142,13 @@
       </div>
       <ol id="ranking" class="ranking solo-multi"></ol>
       <button id="reiniciar">Jugar de nuevo</button>
+      <button id="salir-fin" class="secundario solo-online" type="button">Salir de la sala</button>
     </div>
   </div>
 
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script src="script.js"></script>
+  <script src="online.js"></script>
 </body>
 </html>

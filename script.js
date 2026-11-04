@@ -20,7 +20,7 @@ const pantallaFin = $("fin-juego");
 
 const selJugadores = $("num-jugadores");
 const selRondas = $("rondas");
-const COLORES = ["#e53935", "#1e88e5", "#43a047", "#fdd835"];
+const COLORES = ["#e53935", "#1e88e5", "#43a047", "#fdd835", "#8e24aa", "#fb8c00", "#00acc1", "#d81b60"];
 
 let actual = null;     // { id, nombre, nombreEn, imagen }
 let terminado = false;
@@ -93,8 +93,7 @@ function rango() {
   return { min, max };
 }
 
-function idAleatorio(excluir = []) {
-  const { min, max } = rango();
+function idAleatorio(excluir = [], { min, max } = rango()) {
   let id;
   do {
     id = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -327,7 +326,10 @@ async function crearOpciones(estaRonda) {
   const opciones = nombres
     .map((n, i) => ({ id: ids[i], nombre: n.nombre }))
     .sort(() => Math.random() - 0.5);
+  pintarOpciones(opciones);
+}
 
+function pintarOpciones(opciones) {
   zonaOpciones.innerHTML = "";
   for (const op of opciones) {
     const boton = document.createElement("button");
@@ -343,7 +345,8 @@ function elegirOpcion(boton, id) {
   const acierto = id === actual.id;
   marcarCorrecta();
   if (!acierto) boton.classList.add("incorrecta");
-  terminarRonda(acierto);
+  if (enLinea.activo) enLinea.responder(acierto);
+  else terminarRonda(acierto);
 }
 
 function comprobarEscrito(e) {
@@ -354,7 +357,8 @@ function comprobarEscrito(e) {
 
   const validos = [normalizar(actual.nombre), normalizar(actual.nombreEn)];
   if (validos.includes(intento)) {
-    terminarRonda(true);
+    if (enLinea.activo) enLinea.responder(true);
+    else terminarRonda(true);
   } else {
     mensaje.textContent = "¡No! Inténtalo otra vez";
     mensaje.className = "mensaje mal";
@@ -435,27 +439,7 @@ function terminarRonda(acierto, motivo) {
 
 function mostrarFin() {
   if (esMulti()) {
-    const orden = [...jugadores].sort((a, b) => b.puntos - a.puntos);
-    const max = orden[0].puntos;
-    const ganadores = orden.filter((j) => j.puntos === max);
-    $("titulo-fin").textContent = ganadores.length > 1
-      ? `¡Empate entre ${ganadores.map((j) => j.nombre).join(" y ")}!`
-      : `¡Gana ${ganadores[0].nombre}!`;
-    const medallas = ["🥇", "🥈", "🥉"];
-    const ranking = $("ranking");
-    ranking.innerHTML = "";
-    let puesto = 0;
-    orden.forEach((jug, i) => {
-      // Los empatados comparten puesto
-      if (i === 0 || jug.puntos !== orden[i - 1].puntos) puesto = i;
-      const li = document.createElement("li");
-      const nombre = document.createElement("span");
-      nombre.textContent = `${medallas[puesto] ?? `${puesto + 1}.`} ${jug.nombre}`;
-      const pts = document.createElement("span");
-      pts.textContent = `${jug.puntos} pts`;
-      li.append(nombre, pts);
-      ranking.appendChild(li);
-    });
+    pintarRanking(jugadores);
   } else {
     $("titulo-fin").textContent = "¡Fin del juego!";
     $("puntos-final").textContent = jugadores[0].puntos;
@@ -463,6 +447,31 @@ function mostrarFin() {
   }
   pantallaFin.classList.remove("oculto");
   $("reiniciar").focus();
+}
+
+// Rellena el título y la clasificación del panel final: [{ nombre, puntos }]
+function pintarRanking(lista) {
+  const orden = [...lista].sort((a, b) => b.puntos - a.puntos);
+  const max = orden[0].puntos;
+  const ganadores = orden.filter((j) => j.puntos === max);
+  $("titulo-fin").textContent = ganadores.length > 1
+    ? `¡Empate entre ${ganadores.map((j) => j.nombre).join(" y ")}!`
+    : `¡Gana ${ganadores[0].nombre}!`;
+  const medallas = ["🥇", "🥈", "🥉"];
+  const ranking = $("ranking");
+  ranking.innerHTML = "";
+  let puesto = 0;
+  orden.forEach((jug, i) => {
+    // Los empatados comparten puesto
+    if (i === 0 || jug.puntos !== orden[i - 1].puntos) puesto = i;
+    const li = document.createElement("li");
+    const nombre = document.createElement("span");
+    nombre.textContent = `${medallas[puesto] ?? `${puesto + 1}.`} ${jug.nombre}`;
+    const pts = document.createElement("span");
+    pts.textContent = `${jug.puntos} pts`;
+    li.append(nombre, pts);
+    ranking.appendChild(li);
+  });
 }
 
 function reiniciarJuego() {
@@ -496,9 +505,13 @@ btnSiguiente.addEventListener("click", nuevaRonda);
 btnRendirse.addEventListener("click", () => {
   if (terminado) return;
   marcarCorrecta();
-  terminarRonda(false);
+  if (enLinea.activo) enLinea.responder(false);
+  else terminarRonda(false);
 });
-$("reiniciar").addEventListener("click", reiniciarJuego);
+$("reiniciar").addEventListener("click", () => {
+  if (enLinea.activo) enLinea.alReiniciar();
+  else reiniciarJuego();
+});
 btnSonido.addEventListener("click", () => {
   silenciado = !silenciado;
   guardarLocal("silenciado", silenciado ? "1" : "0");

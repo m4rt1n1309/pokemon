@@ -346,3 +346,104 @@ body.multi .solo-uno {
 .ranking li:nth-child(odd) {
   background: #eef4fb;
 }
+
+/* --- Modo online --- */
+.solo-online {
+  display: none !important;
+}
+
+body.online .solo-online {
+  display: inline-block !important;
+}
+
+body.online .controles,
+body.online .nombres,
+body.online .btn-online {
+  display: none !important;
+}
+
+.btn-online {
+  margin-bottom: 12px;
+  padding: 8px 16px;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+.jugador.desconectado {
+  opacity: 0.4;
+}
+
+.panel-online {
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-online > div {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.panel-online input,
+.panel-online select {
+  padding: 10px;
+  border-radius: 8px;
+  border: 2px solid #c5d3e8;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.panel-online .fila {
+  display: flex;
+  gap: 8px;
+}
+
+.panel-online .fila input {
+  text-transform: uppercase;
+}
+
+.separador {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: #5a6b85;
+}
+
+.online-error {
+  min-height: 1.2em;
+  margin: 0;
+  color: #e53935;
+  font-weight: bold;
+}
+
+button.secundario {
+  background: #eef4fb;
+  color: #003a70;
+  font-weight: normal;
+}
+
+.codigo-sala {
+  letter-spacing: 4px;
+  color: #003a70;
+}
+
+.config-host {
+  display: grid;
+  gap: 8px;
+  text-align: left;
+  font-size: 0.85rem;
+}
+
+.config-host label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.config-texto,
+.esperando {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #5a6b85;
+}
