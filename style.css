@@ -441,6 +441,138 @@ button.secundario {
   gap: 2px;
 }
 
+/* --- Chat de la sala --- */
+.chat {
+  display: none;
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 10;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+body.online .chat {
+  display: flex;
+}
+
+body.online {
+  padding-bottom: 90px;
+}
+
+.chat-abrir {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 1.6rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.chat-nuevos {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #e53935;
+  color: #fff;
+  font-size: 0.75rem;
+  line-height: 22px;
+}
+
+.chat-panel {
+  width: min(320px, calc(100vw - 32px));
+  height: min(380px, calc(100vh - 120px));
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  color: #003a70;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.chat-cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 8px 8px 14px;
+  background: #ffcb05;
+  font-weight: bold;
+}
+
+.chat-cerrar {
+  padding: 4px 10px;
+  background: transparent;
+}
+
+.chat-mensajes {
+  flex: 1;
+  margin: 0;
+  padding: 10px;
+  list-style: none;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: left;
+}
+
+.chat-mensajes li {
+  max-width: 85%;
+  align-self: flex-start;
+  padding: 6px 10px;
+  border-radius: 12px 12px 12px 4px;
+  background: #eef4fb;
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.chat-mensajes li.mio {
+  align-self: flex-end;
+  border-radius: 12px 12px 4px 12px;
+  background: #d6ecff;
+}
+
+.chat-mensajes .autor {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.chat-mensajes li.chat-vacio {
+  align-self: center;
+  margin: auto;
+  background: none;
+  color: #5a6b85;
+  font-size: 0.85rem;
+}
+
+.chat-form {
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  border-top: 1px solid #e0e8f3;
+}
+
+.chat-form input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 2px solid #c5d3e8;
+  font-size: 0.95rem;
+}
+
+.chat-form button {
+  padding: 8px 12px;
+}
+
 .config-texto,
 .esperando {
   margin: 0;

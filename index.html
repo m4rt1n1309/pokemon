@@ -146,6 +146,23 @@
     </div>
   </div>
 
+  <aside id="chat" class="chat">
+    <div id="chat-panel" class="chat-panel oculto">
+      <div class="chat-cabecera">
+        <span>💬 Chat de la sala</span>
+        <button id="chat-cerrar" class="chat-cerrar" type="button" aria-label="Cerrar chat">✕</button>
+      </div>
+      <ul id="chat-mensajes" class="chat-mensajes" aria-live="polite"></ul>
+      <form id="chat-form" class="chat-form" autocomplete="off">
+        <input id="chat-texto" type="text" maxlength="200" placeholder="Escribe un mensaje..." aria-label="Mensaje">
+        <button type="submit">Enviar</button>
+      </form>
+    </div>
+    <button id="chat-abrir" class="chat-abrir" type="button" aria-label="Abrir chat">
+      💬<span id="chat-nuevos" class="chat-nuevos oculto">0</span>
+    </button>
+  </aside>
+
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script src="script.js"></script>

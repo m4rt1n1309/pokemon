@@ -35,6 +35,10 @@ const enLinea = {
   let revelandoRonda = 0;
   let programadaRonda = 0;
   let avanzando = false;
+  let chatRef = null;
+  let chatAbierto = false;
+  let noLeidos = 0;
+  let momentoEntrada = 0;
   const yo = idJugador();
 
   function idJugador() {
@@ -183,6 +187,7 @@ const enLinea = {
     document.body.classList.add("multi", "online");
     try { history.replaceState(null, "", "?sala=" + cod); } catch { /* file:// */ }
     salaRef.on("value", alCambiar);
+    iniciarChat();
   }
 
   async function salir() {
@@ -207,6 +212,7 @@ const enLinea = {
 
   function limpiar() {
     clearInterval(reloj);
+    cerrarChatSala();
     salaRef = null;
     datos = null;
     codigo = null;
@@ -464,7 +470,8 @@ const enLinea = {
         terminado = false;
         inputRespuesta.disabled = false;
         for (const b of zonaOpciones.children) b.disabled = false;
-        if (escribir) inputRespuesta.focus();
+        // No quitarle el foco a quien está escribiendo en el chat
+        if (escribir && document.activeElement !== $("chat-texto")) inputRespuesta.focus();
       }
     });
 
@@ -540,6 +547,98 @@ const enLinea = {
     $("reiniciar").disabled = !esHost;
     pantallaFin.classList.remove("oculto");
   }
+
+  // --- Chat ---
+
+  function iniciarChat() {
+    const lista = $("chat-mensajes");
+    lista.innerHTML = '<li class="chat-vacio">Todavía no hay mensajes. ¡Saluda!</li>';
+    noLeidos = 0;
+    pintarNoLeidos();
+    momentoEntrada = ahora();
+    chatRef = salaRef.child("chat");
+    chatRef.limitToLast(50).on("child_added", (s) => agregarMensaje(s.val()));
+    // En pantallas grandes el chat empieza abierto
+    abrirChat(window.matchMedia("(min-width: 900px)").matches);
+  }
+
+  function cerrarChatSala() {
+    if (chatRef) chatRef.off();
+    chatRef = null;
+    abrirChat(false);
+    $("chat-texto").value = "";
+  }
+
+  function colorDe(id) {
+    const ids = Object.keys(datos?.jugadores || {}).filter((k) => datos.jugadores[k].nombre);
+    const i = ids.indexOf(id);
+    return i >= 0 ? COLORES[i % COLORES.length] : "#5a6b85";
+  }
+
+  function agregarMensaje(m) {
+    if (!m?.texto) return;
+    const lista = $("chat-mensajes");
+    lista.querySelector(".chat-vacio")?.remove();
+    const li = document.createElement("li");
+    if (m.id === yo) {
+      li.className = "mio";
+    } else {
+      const autor = document.createElement("span");
+      autor.className = "autor";
+      autor.textContent = m.nombre || "?";
+      autor.style.color = colorDe(m.id);
+      li.appendChild(autor);
+    }
+    li.appendChild(document.createTextNode(m.texto));
+    lista.appendChild(li);
+    lista.scrollTop = lista.scrollHeight;
+
+    // Solo cuentan como nuevos los mensajes de otros llegados tras entrar
+    if (!chatAbierto && m.id !== yo && (m.t || 0) >= momentoEntrada) {
+      noLeidos++;
+      pintarNoLeidos();
+    }
+  }
+
+  function pintarNoLeidos() {
+    const badge = $("chat-nuevos");
+    badge.textContent = noLeidos > 9 ? "9+" : noLeidos;
+    badge.classList.toggle("oculto", noLeidos === 0);
+  }
+
+  function abrirChat(si) {
+    chatAbierto = si;
+    $("chat-panel").classList.toggle("oculto", !si);
+    $("chat-abrir").setAttribute("aria-label", si ? "Cerrar chat" : "Abrir chat");
+    if (si) {
+      noLeidos = 0;
+      pintarNoLeidos();
+      const lista = $("chat-mensajes");
+      lista.scrollTop = lista.scrollHeight;
+    }
+  }
+
+  function enviarMensaje(e) {
+    e.preventDefault();
+    const input = $("chat-texto");
+    const texto = input.value.trim().slice(0, 200);
+    if (!texto || !chatRef || !datos) return;
+    chatRef.push({
+      id: yo,
+      nombre: datos.jugadores[yo].nombre,
+      texto,
+      t: firebase.database.ServerValue.TIMESTAMP,
+    });
+    input.value = "";
+    input.focus();
+  }
+
+  $("chat-abrir").addEventListener("click", () => {
+    abrirChat(!chatAbierto);
+    if (chatAbierto) $("chat-texto").focus();
+  });
+  $("chat-cerrar").addEventListener("click", () => abrirChat(false));
+  $("chat-form").addEventListener("submit", enviarMensaje);
 
   // --- Eventos ---
 
