@@ -265,3 +265,84 @@ button:disabled {
 .oculto {
   display: none !important;
 }
+
+/* Modo un jugador / varios jugadores */
+body:not(.multi) .solo-multi,
+body.multi .solo-uno {
+  display: none !important;
+}
+
+.nombres {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.nombres input {
+  width: 120px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 3px solid transparent;
+  font-size: 0.9rem;
+}
+
+.tabla-jugadores {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.jugador {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 2px solid transparent;
+  font-size: 0.9rem;
+  transition: transform 0.2s, background-color 0.2s;
+}
+
+.jugador.activo {
+  background: rgba(255, 203, 5, 0.25);
+  border-color: #ffcb05;
+  transform: scale(1.08);
+}
+
+.jugador .color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.turno {
+  margin: 4px 0 8px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #ffcb05;
+}
+
+.ranking {
+  text-align: left;
+  padding-left: 0;
+  list-style: none;
+  margin: 0 0 16px;
+}
+
+.ranking li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.ranking li:nth-child(odd) {
+  background: #eef4fb;
+}

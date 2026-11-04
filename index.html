@@ -33,15 +33,38 @@
           <option value="escribir">Escribir</option>
         </select>
       </label>
+      <label>
+        Jugadores
+        <select id="num-jugadores">
+          <option value="1" selected>1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+        </select>
+      </label>
+      <label class="solo-multi">
+        Rondas
+        <select id="rondas">
+          <option value="3">3</option>
+          <option value="5" selected>5</option>
+          <option value="10">10</option>
+        </select>
+      </label>
     </section>
 
+    <section id="nombres" class="nombres solo-multi"></section>
+
     <section class="marcador">
-      <span>Puntos: <strong id="puntos">0</strong></span>
-      <span>Racha: <strong id="racha">0</strong></span>
-      <span>Mejor racha: <strong id="mejor">0</strong></span>
-      <span id="vidas" class="vidas" aria-label="Vidas"></span>
+      <span class="solo-uno">Puntos: <strong id="puntos">0</strong></span>
+      <span class="solo-uno">Racha: <strong id="racha">0</strong></span>
+      <span class="solo-uno">Mejor racha: <strong id="mejor">0</strong></span>
+      <span id="vidas" class="vidas solo-uno" aria-label="Vidas"></span>
+      <span class="solo-multi">Ronda <strong id="ronda-actual">1</strong> / <strong id="ronda-total">5</strong></span>
       <button id="sonido" class="sonido" type="button" aria-label="Silenciar">🔊</button>
     </section>
+
+    <section id="tabla-jugadores" class="tabla-jugadores solo-multi"></section>
+    <p id="turno" class="turno solo-multi"></p>
 
     <section class="temporizador">
       <div id="barra-tiempo" class="barra-tiempo"></div>
@@ -70,9 +93,12 @@
 
   <div id="fin-juego" class="fin-juego oculto">
     <div class="panel-fin">
-      <h2>¡Fin del juego!</h2>
-      <p>Puntos: <strong id="puntos-final">0</strong></p>
-      <p>Mejor racha: <strong id="mejor-final">0</strong></p>
+      <h2 id="titulo-fin">¡Fin del juego!</h2>
+      <div class="solo-uno">
+        <p>Puntos: <strong id="puntos-final">0</strong></p>
+        <p>Mejor racha: <strong id="mejor-final">0</strong></p>
+      </div>
+      <ol id="ranking" class="ranking solo-multi"></ol>
       <button id="reiniciar">Jugar de nuevo</button>
     </div>
   </div>

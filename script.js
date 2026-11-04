@@ -18,11 +18,16 @@ const barraTiempo = $("barra-tiempo");
 const textoTiempo = $("tiempo");
 const pantallaFin = $("fin-juego");
 
+const selJugadores = $("num-jugadores");
+const selRondas = $("rondas");
+const COLORES = ["#e53935", "#1e88e5", "#43a047", "#fdd835"];
+
 let actual = null;     // { id, nombre, nombreEn, imagen }
 let terminado = false;
 let pistasUsadas = 0;
-let puntos = 0;
-let racha = 0;
+let jugadores = [];    // [{ nombre, puntos, racha }]
+let turno = 0;         // índice del jugador al que le toca
+let turnosJugados = 0; // solo en multijugador
 let vidas = VIDAS_MAX;
 let intervalo = null;
 let finRonda = 0;      // momento (ms) en que se acaba el tiempo
@@ -153,6 +158,73 @@ function precargarImagen(url) {
     img.onerror = reject;
     img.src = url;
   });
+}
+
+// --- Multijugador ---
+
+const esMulti = () => jugadores.length > 1;
+const turnosTotales = () => Number(selRondas.value) * jugadores.length;
+
+function nombresGuardados() {
+  try { return JSON.parse(leerLocal("nombresJugadores")) || []; } catch { return []; }
+}
+
+function crearCamposNombres() {
+  const contenedor = $("nombres");
+  const previos = [...contenedor.querySelectorAll("input")].map((i) => i.value);
+  const guardados = nombresGuardados();
+  const n = Number(selJugadores.value);
+  contenedor.innerHTML = "";
+  for (let i = 0; i < n; i++) {
+    const input = document.createElement("input");
+    input.type = "text";
+    input.maxLength = 12;
+    input.placeholder = `Jugador ${i + 1}`;
+    input.value = previos[i] ?? guardados[i] ?? "";
+    input.style.borderColor = COLORES[i];
+    input.setAttribute("aria-label", `Nombre del jugador ${i + 1}`);
+    input.addEventListener("input", () => {
+      if (jugadores[i]) jugadores[i].nombre = nombreDe(input, i);
+      guardarLocal("nombresJugadores", JSON.stringify(
+        [...contenedor.querySelectorAll("input")].map((x) => x.value)
+      ));
+      pintarMarcador();
+    });
+    contenedor.appendChild(input);
+  }
+}
+
+function nombreDe(input, i) {
+  return input.value.trim() || `Jugador ${i + 1}`;
+}
+
+function pintarMarcador() {
+  const j = jugadores[turno];
+  if (!esMulti()) {
+    $("puntos").textContent = j.puntos;
+    $("racha").textContent = j.racha;
+    $("mejor").textContent = mejor;
+    return;
+  }
+  const tabla = $("tabla-jugadores");
+  tabla.innerHTML = "";
+  jugadores.forEach((jug, i) => {
+    const chip = document.createElement("span");
+    chip.className = "jugador" + (i === turno ? " activo" : "");
+    const color = document.createElement("span");
+    color.className = "color";
+    color.style.background = COLORES[i];
+    const nombre = document.createElement("span");
+    nombre.textContent = jug.nombre;
+    const pts = document.createElement("strong");
+    pts.textContent = jug.puntos;
+    chip.append(color, nombre, pts);
+    tabla.appendChild(chip);
+  });
+  const total = Number(selRondas.value);
+  $("ronda-actual").textContent = Math.min(total, Math.floor(turnosJugados / jugadores.length) + 1);
+  $("ronda-total").textContent = total;
+  $("turno").textContent = `Turno de ${j.nombre}`;
 }
 
 function pintarVidas() {
@@ -313,53 +385,100 @@ function terminarRonda(acierto, motivo) {
   sprite.classList.add("revelado");
   btnRendirse.classList.add("oculto");
 
+  const j = jugadores[turno];
   if (acierto) {
     // Menos puntos cuantas más pistas se usen, y bonus por rapidez
-    puntos += Math.max(1, 3 - pistasUsadas) + Math.floor(restante / 5);
-    racha++;
-    if (racha > mejor) {
-      mejor = racha;
+    const ganados = Math.max(1, 3 - pistasUsadas) + Math.floor(restante / 5);
+    j.puntos += ganados;
+    j.racha++;
+    if (!esMulti() && j.racha > mejor) {
+      mejor = j.racha;
       guardarLocal("mejorRacha", mejor);
     }
-    mensaje.textContent = `¡Es ${actual.nombre}!`;
+    mensaje.textContent = esMulti()
+      ? `¡Es ${actual.nombre}! +${ganados} para ${j.nombre}`
+      : `¡Es ${actual.nombre}!`;
     mensaje.className = "mensaje bien";
     sonar("acierto");
   } else {
-    racha = 0;
-    vidas--;
-    pintarVidas();
+    j.racha = 0;
+    if (!esMulti()) {
+      vidas--;
+      pintarVidas();
+    }
     mensaje.textContent = `${motivo ? motivo + " " : ""}Era ${actual.nombre}...`;
     mensaje.className = "mensaje mal";
     sonar("fallo");
   }
 
-  $("puntos").textContent = puntos;
-  $("racha").textContent = racha;
-  $("mejor").textContent = mejor;
+  let fin;
+  if (esMulti()) {
+    turnosJugados++;
+    fin = turnosJugados >= turnosTotales();
+    if (!fin) turno = (turno + 1) % jugadores.length;
+  } else {
+    fin = vidas <= 0;
+  }
+  pintarMarcador();
 
-  if (vidas <= 0) {
+  if (fin) {
     // Se deja ver el Pokémon revelado un momento antes del fin
     setTimeout(mostrarFin, 1500);
   } else {
+    btnSiguiente.textContent = esMulti()
+      ? `Turno de ${jugadores[turno].nombre} ▶`
+      : "Siguiente ▶";
     btnSiguiente.classList.remove("oculto");
     btnSiguiente.focus();
   }
 }
 
 function mostrarFin() {
-  $("puntos-final").textContent = puntos;
-  $("mejor-final").textContent = mejor;
+  if (esMulti()) {
+    const orden = [...jugadores].sort((a, b) => b.puntos - a.puntos);
+    const max = orden[0].puntos;
+    const ganadores = orden.filter((j) => j.puntos === max);
+    $("titulo-fin").textContent = ganadores.length > 1
+      ? `¡Empate entre ${ganadores.map((j) => j.nombre).join(" y ")}!`
+      : `¡Gana ${ganadores[0].nombre}!`;
+    const medallas = ["🥇", "🥈", "🥉"];
+    const ranking = $("ranking");
+    ranking.innerHTML = "";
+    let puesto = 0;
+    orden.forEach((jug, i) => {
+      // Los empatados comparten puesto
+      if (i === 0 || jug.puntos !== orden[i - 1].puntos) puesto = i;
+      const li = document.createElement("li");
+      const nombre = document.createElement("span");
+      nombre.textContent = `${medallas[puesto] ?? `${puesto + 1}.`} ${jug.nombre}`;
+      const pts = document.createElement("span");
+      pts.textContent = `${jug.puntos} pts`;
+      li.append(nombre, pts);
+      ranking.appendChild(li);
+    });
+  } else {
+    $("titulo-fin").textContent = "¡Fin del juego!";
+    $("puntos-final").textContent = jugadores[0].puntos;
+    $("mejor-final").textContent = mejor;
+  }
   pantallaFin.classList.remove("oculto");
   $("reiniciar").focus();
 }
 
 function reiniciarJuego() {
-  puntos = 0;
-  racha = 0;
+  const n = Number(selJugadores.value);
+  document.body.classList.toggle("multi", n > 1);
+  const campos = $("nombres").querySelectorAll("input");
+  jugadores = Array.from({ length: n }, (_, i) => ({
+    nombre: n > 1 ? nombreDe(campos[i], i) : "",
+    puntos: 0,
+    racha: 0,
+  }));
+  turno = 0;
+  turnosJugados = 0;
   vidas = VIDAS_MAX;
-  $("puntos").textContent = puntos;
-  $("racha").textContent = racha;
   pintarVidas();
+  pintarMarcador();
   pantallaFin.classList.add("oculto");
   nuevaRonda();
 }
@@ -388,5 +507,11 @@ btnSonido.addEventListener("click", () => {
 pintarSonido();
 selModo.addEventListener("change", cambiarModo);
 selGeneracion.addEventListener("change", reiniciarJuego);
+selRondas.addEventListener("change", reiniciarJuego);
+selJugadores.addEventListener("change", () => {
+  crearCamposNombres();
+  reiniciarJuego();
+});
 
+crearCamposNombres();
 reiniciarJuego();
