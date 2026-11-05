@@ -579,3 +579,154 @@ body.online {
   font-size: 0.9rem;
   color: #5a6b85;
 }
+
+/* --- Sala previa (partida local) --- */
+body.en-sala .partida,
+body:not(.en-sala) .sala-local,
+body.online .sala-local,
+body.online .solo-local {
+  display: none !important;
+}
+
+.sala-local {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 16px;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sala-local h2 {
+  margin: 0 0 16px;
+  color: #ffcb05;
+}
+
+.sala-local .controles {
+  gap: 16px;
+}
+
+.sala-local select {
+  min-width: 130px;
+  padding: 8px 10px;
+}
+
+.empezar-local {
+  margin-top: 8px;
+  width: 100%;
+  max-width: 320px;
+  padding: 14px;
+  font-size: 1.2rem;
+  background: #4caf50;
+  color: #fff;
+}
+
+.separador-sala {
+  margin: 10px 0;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.sala-local .btn-online {
+  margin-bottom: 0;
+}
+
+.panel-fin > button {
+  width: 100%;
+}
+
+.panel-fin > button + button {
+  margin-top: 8px;
+}
+
+/* --- Selector de generaciones --- */
+.bloque-gen {
+  flex-basis: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  min-width: 0;
+}
+
+.bloque-gen legend {
+  padding: 0;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+}
+
+.generaciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: 6px;
+}
+
+.generaciones .gen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  padding: 6px 4px;
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.8rem;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.generaciones .gen strong {
+  font-size: 1.1rem;
+}
+
+.generaciones .gen:has(input:checked) {
+  background: #ffcb05;
+  border-color: #ffcb05;
+  color: #003a70;
+}
+
+.generaciones .gen:has(input:focus-visible) {
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
+/* La casilla real queda oculta pero sigue siendo usable con teclado */
+.generaciones .gen input,
+.panel-online .generaciones .gen input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+}
+
+.gen-todas {
+  padding: 6px 4px;
+  font-size: 0.85rem;
+  background: transparent;
+  color: inherit;
+  border: 2px dashed currentColor;
+  opacity: 0.85;
+}
+
+/* En el panel blanco de la sala online */
+.panel-online .generaciones .gen {
+  border-color: #c5d3e8;
+  background: #eef4fb;
+  color: #003a70;
+}
+
+.panel-online .generaciones .gen:has(input:checked) {
+  background: #ffcb05;
+  border-color: #e0b000;
+}
+
+.panel-online .generaciones .gen:has(input:focus-visible) {
+  outline-color: #003a70;
+}
+
+.panel-online .generaciones {
+  grid-template-columns: repeat(auto-fill, minmax(78px, 1fr));
+}

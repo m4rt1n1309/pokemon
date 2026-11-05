@@ -40,6 +40,7 @@ const enLinea = {
   let noLeidos = 0;
   let momentoEntrada = 0;
   const yo = idJugador();
+  const genSala = crearSelectorGen($("sala-generacion"), () => guardarConfig());
 
   function idJugador() {
     let id = null;
@@ -130,7 +131,7 @@ const enLinea = {
         host: yo,
         estado: "espera",
         creada: firebase.database.ServerValue.TIMESTAMP,
-        config: { generacion: selGeneracion.value, modo: selModo.value, rondas: 10 },
+        config: { generacion: selGeneracion.valor, modo: selModo.value, rondas: 10 },
         jugadores: { [yo]: { nombre, puntos: 0, conectado: true } },
       });
       entrar(cod);
@@ -184,6 +185,7 @@ const enLinea = {
     mensaje.textContent = "";
     btnSiguiente.classList.add("oculto");
 
+    document.body.classList.remove("en-sala");
     document.body.classList.add("multi", "online");
     try { history.replaceState(null, "", "?sala=" + cod); } catch { /* file:// */ }
     salaRef.on("value", alCambiar);
@@ -225,9 +227,8 @@ const enLinea = {
     pantallaFin.classList.add("oculto");
     $("reiniciar").textContent = "Jugar de nuevo";
     $("reiniciar").disabled = false;
-    zonaEscribir.classList.toggle("oculto", selModo.value !== "escribir");
-    zonaOpciones.classList.toggle("oculto", selModo.value === "escribir");
-    reiniciarJuego();
+    aplicarModo();
+    mostrarSala();
   }
 
   // --- Sincronización ---
@@ -335,13 +336,14 @@ const enLinea = {
     }
 
     const cfg = datos.config || {};
-    for (const [idSel, valor] of [["sala-generacion", cfg.generacion], ["sala-modo", cfg.modo], ["sala-rondas", cfg.rondas]]) {
+    if (cfg.generacion) genSala.valor = cfg.generacion;
+    for (const [idSel, valor] of [["sala-modo", cfg.modo], ["sala-rondas", cfg.rondas]]) {
       const sel = $(idSel);
       if (document.activeElement !== sel && valor != null) sel.value = String(valor);
     }
-    const textoGen = $("sala-generacion").selectedOptions[0]?.textContent || "";
+    const textoGen = textoGeneraciones(cfg.generacion);
     const textoModo = $("sala-modo").selectedOptions[0]?.textContent || "";
-    $("config-texto").textContent = `Generación: ${textoGen} · ${textoModo} · ${cfg.rondas} rondas`;
+    $("config-texto").textContent = `Generaciones: ${textoGen} · ${textoModo} · ${cfg.rondas} rondas`;
 
     $("config-host").classList.toggle("oculto", !esHost);
     $("config-texto").classList.toggle("oculto", esHost);
@@ -352,7 +354,7 @@ const enLinea = {
   function guardarConfig() {
     if (!esHost || !salaRef) return;
     salaRef.child("config").set({
-      generacion: $("sala-generacion").value,
+      generacion: genSala.valor,
       modo: $("sala-modo").value,
       rondas: Number($("sala-rondas").value),
     });
@@ -367,7 +369,7 @@ const enLinea = {
       respuestas: null,
       ronda: 0,
       config: {
-        generacion: $("sala-generacion").value,
+        generacion: genSala.valor,
         modo: $("sala-modo").value,
         rondas: Number($("sala-rondas").value),
       },
@@ -397,8 +399,7 @@ const enLinea = {
         await salaRef.update({ estado: "fin" });
         return;
       }
-      const [min, max] = cfg.generacion.split("-").map(Number);
-      const r = { min, max };
+      const r = rangos(cfg.generacion);
       const p = await obtenerPokemon(idAleatorio([], r));
       await precargarImagen(p.imagen);
       let opciones = null;
@@ -647,7 +648,6 @@ const enLinea = {
     if (esHost && salaRef) salaRef.update({ estado: "espera", respuestas: null, ronda: 0 });
   };
 
-  $("sala-generacion").innerHTML = selGeneracion.innerHTML;
   $("sala-modo").innerHTML = selModo.innerHTML;
 
   $("btn-online").addEventListener("click", () => abrirPanel());
@@ -659,7 +659,7 @@ const enLinea = {
     if (e.key === "Enter") ($("online-codigo").value ? unirse : crearSala)();
   });
   $("empezar").addEventListener("click", empezar);
-  for (const id of ["sala-generacion", "sala-modo", "sala-rondas"]) {
+  for (const id of ["sala-modo", "sala-rondas"]) {
     $(id).addEventListener("change", guardarConfig);
   }
   for (const id of ["salir-sala", "salir-partida", "salir-fin"]) {

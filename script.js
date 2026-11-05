@@ -12,7 +12,6 @@ const inputRespuesta = $("respuesta");
 const btnSiguiente = $("siguiente");
 const btnRendirse = $("rendirse");
 const btnPista = $("pista");
-const selGeneracion = $("generacion");
 const selModo = $("modo");
 const barraTiempo = $("barra-tiempo");
 const textoTiempo = $("tiempo");
@@ -88,15 +87,109 @@ function guardarLocal(clave, valor) {
   try { localStorage.setItem(clave, valor); } catch { /* sin almacenamiento */ }
 }
 
-function rango() {
-  const [min, max] = selGeneracion.value.split("-").map(Number);
-  return { min, max };
+// --- Generaciones ---
+// La selección se guarda como texto con rangos separados por comas: "1-151,252-386"
+
+const GENERACIONES = [
+  { num: 1, region: "Kanto", min: 1, max: 151 },
+  { num: 2, region: "Johto", min: 152, max: 251 },
+  { num: 3, region: "Hoenn", min: 252, max: 386 },
+  { num: 4, region: "Sinnoh", min: 387, max: 493 },
+  { num: 5, region: "Teselia", min: 494, max: 649 },
+  { num: 6, region: "Kalos", min: 650, max: 721 },
+  { num: 7, region: "Alola", min: 722, max: 809 },
+  { num: 8, region: "Galar", min: 810, max: 905 },
+  { num: 9, region: "Paldea", min: 906, max: 1025 },
+];
+
+function rangos(valor) {
+  const lista = String(valor || "")
+    .split(",")
+    .map((r) => r.split("-").map(Number))
+    .filter(([min, max]) => min > 0 && max >= min)
+    .map(([min, max]) => ({ min, max }));
+  return lista.length ? lista : [{ min: 1, max: 151 }];
 }
 
-function idAleatorio(excluir = [], { min, max } = rango()) {
+// Generaciones incluidas en un valor (sirve también para valores antiguos como "1-1025")
+function generacionesDe(valor) {
+  const rs = rangos(valor);
+  return GENERACIONES.filter((g) => rs.some((r) => r.min <= g.min && g.max <= r.max));
+}
+
+function textoGeneraciones(valor) {
+  const gens = generacionesDe(valor);
+  if (gens.length === GENERACIONES.length) return "Todas";
+  return gens.map((g) => `${g.num} (${g.region})`).join(", ");
+}
+
+// Pinta casillas de generación dentro de un contenedor y devuelve un control
+function crearSelectorGen(contenedor, alCambiar) {
+  contenedor.innerHTML = "";
+  const checks = GENERACIONES.map((g) => {
+    const label = document.createElement("label");
+    label.className = "gen";
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.value = `${g.min}-${g.max}`;
+    input.checked = g.num === 1;
+    const num = document.createElement("strong");
+    num.textContent = g.num;
+    const region = document.createElement("span");
+    region.textContent = g.region;
+    label.append(input, num, region);
+    contenedor.appendChild(label);
+    input.addEventListener("change", () => {
+      // Siempre tiene que quedar al menos una marcada
+      if (!checks.some((c) => c.checked)) input.checked = true;
+      alCambiar?.();
+    });
+    return input;
+  });
+
+  const todas = document.createElement("button");
+  todas.type = "button";
+  todas.className = "gen-todas";
+  contenedor.appendChild(todas);
+  const pintarTodas = () => {
+    todas.textContent = checks.every((c) => c.checked) ? "Solo la 1" : "Todas";
+  };
+  todas.addEventListener("click", () => {
+    const marcar = !checks.every((c) => c.checked);
+    checks.forEach((c, i) => { c.checked = marcar || i === 0; });
+    pintarTodas();
+    alCambiar?.();
+  });
+  checks.forEach((c) => c.addEventListener("change", pintarTodas));
+  pintarTodas();
+
+  return {
+    get valor() {
+      return checks.filter((c) => c.checked).map((c) => c.value).join(",");
+    },
+    set valor(v) {
+      const marcadas = new Set(generacionesDe(v).map((g) => `${g.min}-${g.max}`));
+      if (!marcadas.size) return;
+      checks.forEach((c) => { c.checked = marcadas.has(c.value); });
+      pintarTodas();
+    },
+  };
+}
+
+const selGeneracion = crearSelectorGen($("generacion"), () => {
+  guardarLocal("ajuste-generacion", selGeneracion.valor);
+});
+
+function idAleatorio(excluir = [], lista = rangos(selGeneracion.valor)) {
+  const total = lista.reduce((n, r) => n + r.max - r.min + 1, 0);
   let id;
   do {
-    id = Math.floor(Math.random() * (max - min + 1)) + min;
+    let k = Math.floor(Math.random() * total);
+    for (const r of lista) {
+      const tam = r.max - r.min + 1;
+      if (k < tam) { id = r.min + k; break; }
+      k -= tam;
+    }
   } while (excluir.includes(id));
   return id;
 }
@@ -199,6 +292,7 @@ function nombreDe(input, i) {
 
 function pintarMarcador() {
   const j = jugadores[turno];
+  if (!j) return;
   if (!esMulti()) {
     $("puntos").textContent = j.puntos;
     $("racha").textContent = j.racha;
@@ -492,10 +586,26 @@ function reiniciarJuego() {
   nuevaRonda();
 }
 
-function cambiarModo() {
+function aplicarModo() {
   const escribir = selModo.value === "escribir";
   zonaEscribir.classList.toggle("oculto", !escribir);
   zonaOpciones.classList.toggle("oculto", escribir);
+}
+
+// Pantalla previa: se eligen generación, modo, jugadores y rondas antes de jugar
+function mostrarSala() {
+  detenerTemporizador();
+  ronda++; // descarta cualquier carga en curso
+  terminado = true;
+  document.body.classList.toggle("multi", Number(selJugadores.value) > 1);
+  document.body.classList.add("en-sala");
+  pantallaFin.classList.add("oculto");
+  $("empezar-local").focus();
+}
+
+function empezarPartida() {
+  document.body.classList.remove("en-sala");
+  aplicarModo();
   reiniciarJuego();
 }
 
@@ -518,13 +628,22 @@ btnSonido.addEventListener("click", () => {
   pintarSonido();
 });
 pintarSonido();
-selModo.addEventListener("change", cambiarModo);
-selGeneracion.addEventListener("change", reiniciarJuego);
-selRondas.addEventListener("change", reiniciarJuego);
 selJugadores.addEventListener("change", () => {
   crearCamposNombres();
-  reiniciarJuego();
+  document.body.classList.toggle("multi", Number(selJugadores.value) > 1);
 });
+$("empezar-local").addEventListener("click", empezarPartida);
+$("volver-sala").addEventListener("click", mostrarSala);
+$("cambiar-ajustes").addEventListener("click", mostrarSala);
+
+// Recordar la configuración de la sala entre visitas
+const genGuardada = leerLocal("ajuste-generacion");
+if (genGuardada) selGeneracion.valor = genGuardada;
+for (const [sel, clave] of [[selModo, "modo"], [selJugadores, "jugadores"], [selRondas, "rondas"]]) {
+  const guardado = leerLocal("ajuste-" + clave);
+  if (guardado && [...sel.options].some((o) => o.value === guardado)) sel.value = guardado;
+  sel.addEventListener("change", () => guardarLocal("ajuste-" + clave, sel.value));
+}
 
 crearCamposNombres();
-reiniciarJuego();
+mostrarSala();

@@ -10,22 +10,13 @@
   <main class="juego">
     <h1>¿Quién es ese Pokémon?</h1>
 
+    <section id="sala-local" class="sala-local">
+    <h2>Prepara la partida</h2>
     <section class="controles">
-      <label>
-        Generación
-        <select id="generacion">
-          <option value="1-1025">Todas</option>
-          <option value="1-151" selected>1 (Kanto)</option>
-          <option value="152-251">2 (Johto)</option>
-          <option value="252-386">3 (Hoenn)</option>
-          <option value="387-493">4 (Sinnoh)</option>
-          <option value="494-649">5 (Teselia)</option>
-          <option value="650-721">6 (Kalos)</option>
-          <option value="722-809">7 (Alola)</option>
-          <option value="810-905">8 (Galar)</option>
-          <option value="906-1025">9 (Paldea)</option>
-        </select>
-      </label>
+      <fieldset class="bloque-gen">
+        <legend>Generaciones</legend>
+        <div id="generacion" class="generaciones"></div>
+      </fieldset>
       <label>
         Modo
         <select id="modo">
@@ -54,8 +45,12 @@
 
     <section id="nombres" class="nombres solo-multi"></section>
 
-    <button id="btn-online" class="btn-online" type="button">🌐 Jugar online</button>
+    <button id="empezar-local" class="empezar-local" type="button">¡Empezar!</button>
+    <p class="separador-sala">o</p>
+    <button id="btn-online" class="btn-online" type="button">🌐 Jugar online con amigos</button>
+    </section>
 
+    <section id="partida" class="partida">
     <section class="marcador">
       <span class="solo-uno">Puntos: <strong id="puntos">0</strong></span>
       <span class="solo-uno">Racha: <strong id="racha">0</strong></span>
@@ -92,6 +87,8 @@
     <button id="siguiente" class="siguiente oculto">Siguiente ▶</button>
     <button id="rendirse" class="rendirse">Me rindo</button>
     <button id="salir-partida" class="rendirse solo-online" type="button">Salir de la sala</button>
+    <button id="volver-sala" class="rendirse solo-local" type="button">⚙️ Volver a la sala</button>
+    </section>
   </main>
 
   <div id="online" class="fin-juego oculto">
@@ -114,7 +111,10 @@
         <button id="copiar-enlace" class="secundario" type="button">📋 Copiar enlace para invitar</button>
         <ul id="lista-sala" class="ranking"></ul>
         <div id="config-host" class="config-host">
-          <label>Generación <select id="sala-generacion"></select></label>
+          <fieldset class="bloque-gen">
+            <legend>Generaciones</legend>
+            <div id="sala-generacion" class="generaciones"></div>
+          </fieldset>
           <label>Modo <select id="sala-modo"></select></label>
           <label>Rondas
             <select id="sala-rondas">
@@ -142,6 +142,7 @@
       </div>
       <ol id="ranking" class="ranking solo-multi"></ol>
       <button id="reiniciar">Jugar de nuevo</button>
+      <button id="cambiar-ajustes" class="secundario solo-local" type="button">⚙️ Cambiar ajustes</button>
       <button id="salir-fin" class="secundario solo-online" type="button">Salir de la sala</button>
     </div>
   </div>
